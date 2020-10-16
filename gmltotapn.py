@@ -1,9 +1,11 @@
 #Library used to work with GML files
 import networkx as nx
+import math
 
 #GML Network name to be converted
 #Has to be in same directory as .py file for now
-network = 'Arpanet196912'
+#network = 'Arpanet196912'
+network = 'Aarnet'
 
 #Initialising the GML reader
 G = nx.read_gml(network + '.gml')
@@ -34,6 +36,12 @@ def long_to_x(long):
     return ((int)((canvas_width/360.0) * (180 + long) *5 - 2000))
 def lat_to_y(lat):
     return ((int)((canvas_height/180.0) * (90 - lat) *5 - 1200))
+
+#Small tweak to calculate the transition rotation
+# #do it for the a e  s    t     h      e       t        h         i          c
+
+def slope(x0, x1, y0, y1):
+    return (int(math.degrees(math.atan2((y1-y0),(x1-x0)))))
     
 
 
@@ -58,8 +66,8 @@ for i in range(len(G.edges(data=True))):
     y1 = lat_to_y(G.nodes(data=True)[edges[i][1]]['Latitude'])
     x = (x0 + x1) / 2
     y = (y0 + y1) / 2
-    f.write("    <transition angle=\"0\" displayName=\"true\" id=\"" + str(edges[i][0] + "_" + edges[i][1]) + "\" infiniteServer=\"false\" name=\"" + edges[i][0] + "_" + edges[i][1] + "\" nameOffsetX=\"-5.0\" nameOffsetY=\"35.0\" positionX=\"" + str(x) + "\" positionY=\"" + str(y) + "\" priority=\"0\" urgent=\"false\"/>\n")
-    
+    f.write("    <transition angle=\"" + str(slope(x0, x1, y0, y1)) + "\" displayName=\"true\" id=\"" + str(edges[i][0] + "_" + edges[i][1]) + "\" infiniteServer=\"false\" name=\"" + edges[i][0] + "_" + edges[i][1] + "\" nameOffsetX=\"-5.0\" nameOffsetY=\"35.0\" positionX=\"" + str(x) + "\" positionY=\"" + str(y) + "\" priority=\"0\" urgent=\"false\"/>\n")
+    print()
 
 
 f.write("  </net>\n")
