@@ -3,8 +3,9 @@ import math
 
 #GML Network name to be converted
 #Has to be in same directory as .py file for now
-network = 'Arpanet196912'
-#network = 'Aarnet'
+#network = 'Arpanet196912'
+network = 'Aarnet'
+#network = 'Aconet'
 
 #Initialising the GML reader
 G = nx.read_gml(network + '.gml')
@@ -12,17 +13,16 @@ nodes = list(G.nodes(data=True))
 edges = list(G.edges)
 
 #TAPAAL Window Canva size
-canvas_width = 3000
+canvas_width = 2000
 canvas_height = 1000
 
-#Needed arrays
+#Needed variables
 labels = []
+label_link = {}
 lats = []
 longs = []
 transitions = []
-conv_lats = []
-conv_longs = []
-
+transition_link = {}
 #Sepparating Id, Lat and Long
 for i in range (len(G.nodes)):
     labels.append(nodes[i][0]) #Label
@@ -32,9 +32,9 @@ for i in range (len(G.nodes)):
 #Formulas used to convert gps coordinates to x,y based on
 #the size of your canvas
 def long_to_x(long):
-    return ((int)((canvas_width/360.0) * (180 + long) *5 - 2000))
+    return ((int)((canvas_width/360.0) * (180 + long) *10 - 2200))
 def lat_to_y(lat):
-    return ((int)((canvas_height/180.0) * (90 - lat) *5 - 1200))
+    return ((int)((canvas_height/180.0) * (90 - lat) *10 - 2200))
 
 #Small tweak to calculate the transition rotation
 # #do it for the a e  s    t     h      e       t        h         i          c
@@ -57,6 +57,7 @@ f.write("  <net active=\"true\" id=\"" + network + "\" type=\"P/T net\">\n")
 #labels[i]
 for i in range (len(G.nodes)): 
     f.write("    <place displayName=\"true\" id=\"" + "P" + str(i) + "\" initialMarking=\"0\" invariant=\"&lt; inf\" name=\"" + "P" + str(i) + "\" nameOffsetX=\"-5.0\" nameOffsetY=\"35.0\" positionX=\"" + str(long_to_x(longs[i])) + "\" positionY=\"" + str(lat_to_y(lats[i])) + "\"/>\n")
+    label_link[labels[i]] = "P" + str(i)
 
 
 ##### PART II: TRANSITIONS
@@ -69,16 +70,25 @@ for i in range(len(G.edges(data=True))):
     y1 = lat_to_y(G.nodes(data=True)[edges[i][1]]['Latitude'])
     x = (x0 + x1) / 2
     y = (y0 + y1) / 2
+
+    p0 = edges[i][0]
+    p1 = edges[i][1]
     #To have the names instead of T0 T1 etc..
     #replace "T" + str(i) in id and name with:
     #str(edges[i][0] + "_" + edges[i][1])
     f.write("    <transition angle=\"" + str(slope(x0, x1, y0, y1)) + "\" displayName=\"true\" id=\"" + "T" + str(i) + "\" infiniteServer=\"false\" name=\"" + "T" + str(i) + "\" nameOffsetX=\"-5.0\" nameOffsetY=\"35.0\" positionX=\"" + str(x) + "\" positionY=\"" + str(y) + "\" priority=\"0\" urgent=\"false\"/>\n")
-
+    transition_link[(p0, p1)] = "T" + str(i)
 
 ##### PART III: ARCS
 #Generating node-transition arcs, idem to previous
-#for i in range(len(G.edges(data=True)))
-
+for i in G.edges(data=True):
+    source = i[0]
+    target = i[1]
+    print(str(label_link[source]) + " to " + str(label_link[target]) + " through " + str(transition_link[(source, target)]))
+    f.write("    <arc id=\"" + label_link[source] + " to " + transition_link[(source, target)] + "\" inscription=\"[0,inf)\" nameOffsetX=\"0.0\" nameOffsetY=\"0.0\" source=\"" + label_link[source] + "\" target=\"" + transition_link[(source, target)] + "\" type=\"timed\" weight=\"1\">\n")
+    f.write("    </arc>\n")
+    f.write("    <arc id=\"" + transition_link[(source, target)] + " to " + label_link[target] + "\" inscription=\"1\" nameOffsetX=\"0.0\" nameOffsetY=\"0.0\" source=\"" + transition_link[(source, target)] + "\" target=\"" + label_link[target] + "\" type=\"normal\" weight=\"1\">\n")
+    f.write("    </arc>\n")
 
 #File writing ending part
 f.write("  </net>\n")
