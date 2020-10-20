@@ -19,7 +19,7 @@ edges_raw = list(G.edges)
 xs = 600
 ys = 600
 r = 500
-tspace = 50
+tspace = 100
 
 #Needed variables
 nodes = []
@@ -52,9 +52,6 @@ def slope(x0, x1, y0, y1):
 
 def tran_locator(x, y, t):
     ntc[t] +=1
-    print(ntc[t], " ", r, " ", ntc[t]*tspace)
-    #x0 = int(int((x - xs) / r) * (r - ntc[t]*tspace)) + xs
-    #y0 = int(int((y - ys) / r) * (r - ntc[t]*tspace)) + ys
     a, b = rgen(int(t[1:]), r-ntc[t]*tspace)
     return (a, b)
     
@@ -75,11 +72,18 @@ for i in range (edges_count):
     source, target = transitions[i]
     x0, y0 = nodes_cords[source]
     x, y = tran_locator(x0, y0, source)
-    print(x, " ", y)
     f.write("    <transition angle=\"" + str(slope(x0, xs, y0, ys)) + "\" displayName=\"true\" id=\"" + "T" + str(i) + "\" infiniteServer=\"false\" name=\"" + "T" + str(i) + "\" nameOffsetX=\"-5.0\" nameOffsetY=\"35.0\" positionX=\"" + str(x) + "\" positionY=\"" + str(y) + "\" priority=\"0\" urgent=\"false\"/>\n")
 
+##### PART III: ARCS
+#Generating node-transition arcs, idem to previous
+for i in range(edges_count):
+    source, target = transitions[i]
+    print(source + " to " + target + " through " + transitions_label[(source, target)])
+    f.write("    <arc id=\"" + source + " to " + transitions_label[(source, target)] + "\" inscription=\"[0,inf)\" nameOffsetX=\"0.0\" nameOffsetY=\"0.0\" source=\"" + source + "\" target=\"" + transitions_label[(source, target)] + "\" type=\"timed\" weight=\"1\">\n")
+    f.write("    </arc>\n")
+    f.write("    <arc id=\"" + transitions_label[(source, target)] + " to " + target + "\" inscription=\"1\" nameOffsetX=\"0.0\" nameOffsetY=\"0.0\" source=\"" + transitions_label[(source, target)] + "\" target=\"" + target + "\" type=\"normal\" weight=\"1\">\n")
+    f.write("    </arc>\n")
 
-print(ntc)
 #File writing ending part
 f.write("  </net>\n")
 f.write("  <k-bound bound=\"3\"/>\n")
