@@ -1,5 +1,7 @@
 import networkx as nx #Library used to work with GML files
 import math
+import random
+from collections import defaultdict
 
 ### TODO:
 #   - ?different spacing between transitions based on how many outgoings a node has
@@ -10,11 +12,11 @@ import math
 #GML Network to be converted
 #### HAS TO BE IN SAME DIRECTORY AS PY FILE FOR NOW
 ## INPUT ITS NAME BELLOW
-#network = 'Arpanet196912'
+network = 'Arpanet196912'
 #network = 'Aarnet'
 #network = 'Aconet'
 #network = 'Ai3'
-network = 'UniC'
+#network = 'UniC'
 
 #Initialising the GML reader
 G = nx.read_gml(network + '.gml', label = 'id')
@@ -25,10 +27,11 @@ edges_raw = list(G.edges)
 
 
 ### SETTINGS ###
-xs = 600 #x offset
-ys = 600 #y offset
-r = 500  #circle ray, has to be smaller than offset
+xs = 300 #x offset
+ys = 300 #y offset
+r = 200  #circle ray, has to be smaller than offset
 tspace = 60 #spacing between transitions
+
 
 ################
 
@@ -49,6 +52,9 @@ for i in range(edges_count):
     source, target = nodes_label[edges_raw[i][0]], nodes_label[edges_raw[i][1]]
     transitions.append((source, target))
     transitions_label[(source, target)] = "T" + str(i)
+
+waypointcount = int(input("Input a number of desired waypoints between 1 and " + str(nodes_count) + " :  "))
+waypoints = random.sample(list(nodes_label), waypointcount)
 
 #Generates a set of (x,y) coordinates in the "nth slice"
 #of the circle at a certain radius
@@ -77,7 +83,25 @@ def tran_locator(x, y, t):
 f = open(network + "_v3.tapn", "w")
 f.write("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n")
 f.write("<pnml xmlns=\"http://www.informatik.hu-berlin.de/top/pnml/ptNetb\">\n")
+for i in range(edges_count):
+    f.write("    <shared-transition name=\"T" + str(i) + "\" urgent=\"false\"/>\n")
+
+visited = defaultdict(list)
+print(waypoints)
+for i in waypoints:
+    source0, wp = transitions[i]
+    for j in transitions:
+        source, target = j
+        if target == wp:
+            visited[wp].append(j)
+            print(wp, " ", j)
+        
+
+
+
+
 f.write("  <net active=\"true\" id=\"" + network + "\" type=\"P/T net\">\n")
+
 
 ##### PART I: NODES
 for i in range (nodes_count):
@@ -100,8 +124,34 @@ for i in range(edges_count):
     f.write("    <arc id=\"" + transitions_label[(source, target)] + " to " + target + "\" inscription=\"1\" nameOffsetX=\"0.0\" nameOffsetY=\"0.0\" source=\"" + transitions_label[(source, target)] + "\" target=\"" + target + "\" type=\"normal\" weight=\"1\">\n")
     f.write("    </arc>\n")
 
-#File writing ending part
 f.write("  </net>\n")
+
+
+#### PART IV COMPONENTS
+
+for i in waypoints:
+    wp_id = nodes_label[nodes[i]] + "_visited"
+    f.write("  <net active=\"true\" id=\"" + wp_id + "\" type=\"P/T net\">\n")
+    f.write("    <place displayName=\"true\" id=\"" + wp_id + "\" initialMarking=\"0\" invariant=\"&lt; inf\" name=\"" + wp_id + "\" nameOffsetX=\"-5.0\" nameOffsetY=\"35.0\" positionX=\"" + "100" + "\" positionY=\"" + "100" + "\"/>\n")
+    c_wp = visited[nodes_label[nodes[i]]]
+    y_diff = 50
+    cnt = 0
+    for j in c_wp:
+        source, target = j
+        f.write("    <transition angle=\"0\" displayName=\"true\" id=\"" + str(transitions_label[(source, target)]) + "\" infiniteServer=\"false\" name=\"" + str(transitions_label[(source, target)]) + "\" nameOffsetX=\"-5.0\" nameOffsetY=\"35.0\" positionX=\"" + "200" + "\" positionY=\"" + str( 100 + y_diff*cnt ) + "\" priority=\"0\" urgent=\"false\"/>\n")
+        cnt += 1
+    print(c_wp)
+    cnt = 0
+    for j in c_wp:
+        source, target = j
+        f.write("    <arc id=\"" + str(transitions_label[(source, target)]) + " to " + wp_id + "\" inscription=\"1\" nameOffsetX=\"0.0\" nameOffsetY=\"0.0\" source=\"" + str(transitions_label[(source, target)]) + "\" target=\"" + wp_id + "\" type=\"normal\" weight=\"1\">\n")
+        f.write("    </arc>\n")
+        cnt += 1
+        
+    f.write("  </net>\n")
+
+    
+    
 f.write("  <k-bound bound=\"3\"/>\n")
 f.write("</pnml>")
 f.close()
