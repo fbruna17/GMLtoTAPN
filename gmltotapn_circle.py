@@ -2,8 +2,6 @@ import networkx as nx #Library used to work with GML files
 import math
 
 ### TODO:
-##  - !!!!change using node labels to just counting the nodes and
-# getting the transition rules from edges as some data sets do not have them
 #   - ?different spacing between transitions based on how many outgoings a node has
 #   - ?rotate somehow the transitions so that the lines don't seem to overlap
 ##  - ~automatically change settings based on network size
@@ -31,6 +29,7 @@ xs = 600 #x offset
 ys = 600 #y offset
 r = 500  #circle ray, has to be smaller than offset
 tspace = 60 #spacing between transitions
+
 ################
 
 #Needed variables
