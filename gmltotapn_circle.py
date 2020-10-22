@@ -15,10 +15,11 @@ import math
 #network = 'Arpanet196912'
 #network = 'Aarnet'
 #network = 'Aconet'
-network = 'Ai3'
+#network = 'Ai3'
+network = 'UniC'
 
 #Initialising the GML reader
-G = nx.read_gml(network + '.gml')
+G = nx.read_gml(network + '.gml', label = 'id')
 nodes_count = len(G.nodes)
 edges_count = len(G.edges)
 nodes_raw = list(G.nodes(data = True))
