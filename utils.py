@@ -55,7 +55,7 @@ class Arc:
         print("Source: {}, Target: {}, Transition: {}"
               .format(self.source.notation, self.target.notation, self.transition.notation))
 
-network = " "
+network = "Aarnet"
 G = nx.read_gml(network + '.gml', label = 'id')
 nodes_raw = list(G.nodes(data=True))
 edges_raw = list(G.edges)
