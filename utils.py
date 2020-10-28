@@ -1,6 +1,7 @@
 import networkx as nx
 import random
 from copy import deepcopy
+import json
 
 
 class Node:
@@ -226,6 +227,7 @@ def write_LoopFreedom():
                     .format(node.notation, node.notation, 100, 100))
             x = 200
             y = 50
+
             inbound_t = []
             for t in transitions:
                 if t.target == node.id:
@@ -245,7 +247,7 @@ def write_LoopFreedom():
                     y += 100
             for t in outbound_t:
                 f.write(t.to_file())
-
+            # This for loop maps arcs from place to transitions
             inbound_arcs = []
             for t in inbound_t:
                 a = Outbound_Arc(t, node)
@@ -253,6 +255,7 @@ def write_LoopFreedom():
             for arc in inbound_arcs:
                 f.write(arc.to_file())
 
+            # this for loop maps arcs from transition to places.
             outbound_arcs = []
             for t in outbound_t:
                 a = Inbound_Arc(node, t, "tapnInhibitor", "2")
@@ -312,12 +315,29 @@ def write_controllers():
             in_arc = Inbound_Arc(update_nodes[i], update_transitions[i], "timed", "1")
             out_arc = Outbound_Arc(update_transitions[i], update_nodes[i])
 
-            ##Another Inbound or Outbound arc could be generated here based on the JSON for the pathing
+            ## Another Inbound or Outbound arc could be generated here based on the JSON for the pathing
 
             f.write(in_arc.to_file())
             f.write(out_arc.to_file())
 
         f.write("  </net>\n")
+
+def parse_query():
+    with open('query.json') as json_file:
+        query = json.load(json_file)
+
+    query_string = "{} (!({}.{} {} {}) {} {}.{} {} {})".format(query["query"]['query type'], query["query"]['network_1'], query["query"]['place_1'], query["query"]['predicate_1'], query["query"]['tokens_1'], query["query"]['logic'], query["query"]['network_2'], query["query"]['place_2'], query["query"]['predicate_2'], query["query"]['tokens_2'])
+    return query_string
+
+
+def write_query():
+    #load json file
+    query_input = parse_query()
+    print(query_input)
+    f.write("<query active=\"true\" approximationDenominator=\"2\" capacity=\"4\" discreteInclusion=\"false\" enableOverApproximation=\"false\" enableUnderApproximation=\"false\" "
+           "extrapolationOption=\"AUTOMATIC\" gcd=\"false\" hashTableSize=\"MB_16\" inclusionPlaces=\"*NONE*\" name=\"Properties\" overApproximation=\"true\" pTrie=\"true\" "
+          "query=\"{}\" "
+         "reduction=\"true\" reductionOption=\"VerifyTAPNdiscreteVerification\" searchOption=\"DFS\" symmetry=\"true\" timeDarts=\"false\" traceOption=\"NONE\" useStubbornReduction=\"true\"/>\n".format(query_input))
 
 
 def write_to_file():
@@ -332,6 +352,7 @@ def write_to_file():
     write_waypoints(waypoint_count)
     write_controllers()
     write_LoopFreedom()
+    #write_query()
 
     # End of File
     f.write("  <k-bound bound=\"3\"/>\n")
