@@ -218,7 +218,7 @@ def write_waypoints(wp_count):
 
 def write_LoopFreedom():
         for node in nodes:
-            node.notation += "_visited"
+            node.notation += "_loopFreedom"
 
             f.write("  <net active=\"true\" id=\"{}\" type=\"P/T net\">\n"
                     .format(node.notation))
@@ -352,7 +352,7 @@ def write_to_file():
     write_waypoints(waypoint_count)
     write_controllers()
     write_LoopFreedom()
-    #write_query()
+    write_query()
 
     # End of File
     f.write("  <k-bound bound=\"3\"/>\n")
